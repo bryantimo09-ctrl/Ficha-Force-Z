@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha Force Z</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --hue: 271;
+    --accent: hsl(var(--hue) 68% 56%);
+    --accent-dim: hsl(var(--hue) 45% 30%);
+    --accent-soft: hsl(var(--hue) 60% 56% / 0.16);
+    --accent-ring: hsl(var(--hue) 80% 70%);
+    --bg: #131019;
+    --panel: #1c1826;
+    --panel-alt: #221d30;
+    --line: #33293f;
+    --ink: #efe9f7;
+    --muted: #9c93ad;
+    --danger: #d9556f;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 0%, hsl(var(--hue) 55% 20% / .5), transparent 45%),
+      radial-gradient(circle at 100% 10%, hsl(var(--hue) 40% 15% / .5), transparent 40%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Rubik', sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Anton', sans-serif;
+    letter-spacing:.03em;
+    font-weight:400;
+  }
+
+  a{color:inherit;}
+
+  /* ---------- layout ---------- */
+  .app{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:22px;
+    max-width:1180px;
+    margin:0 auto;
+    padding:22px;
+  }
+  @media (max-width:880px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{position:static !important;order:2;}
+    .sheet{order:1;}
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    position:sticky;
+    top:22px;
+    align-self:start;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    height:fit-content;
+  }
+  .brand{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .brand .display{font-size:1.6rem;color:var(--accent);line-height:1;}
+  .brand span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;}
+
+  .wheel-block{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .wheel-label{font-size:.78rem;color:var(--muted);align-self:flex-start;}
+  .wheel-wrap{position:relative;width:150px;height:150px;touch-action:none;}
+  #wheel{
+    width:100%;height:100%;border-radius:50%;cursor:crosshair;
+    box-shadow:0 0 0 4px var(--panel-alt), 0 0 0 5px var(--line);
+  }
+  #wheel-knob{
+    position:absolute;width:18px;height:18px;border-radius:50%;
+    background:var(--accent);
+    border:3px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.5);
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+  }
+  .wheel-swatch{
+    display:flex;align-items:center;gap:10px;
+    font-size:.8rem;color:var(--muted);
+  }
+  .wheel-swatch .dot{
+    width:20px;height:20px;border-radius:50%;background:var(--accent);
+    border:2px solid var(--line);
+  }
+
+  .side-actions{display:flex;flex-direction:column;gap:8px;}
+  button{
+    font-family:'Rubik',sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    border-radius:10px;
+    border:1px solid var(--line);
+    padding:10px 14px;
+    cursor:pointer;
+    background:var(--panel-alt);
+    color:var(--ink);
+    transition:filter .15s ease, transform .05s ease;
+  }
+  button:active{transform:translateY(1px);}
+  button:hover{filter:brightness(1.12);}
+  .btn-primary{
+    background:var(--accent);
+    color:#161222;
+    border:none;
+  }
+  .btn-ghost{background:transparent;}
+  .btn-danger-ghost{background:transparent;color:var(--danger);border-color:hsl(348 55% 40% / .5);}
+
+  .save-status{font-size:.72rem;color:var(--muted);min-height:1em;text-align:center;}
+  .save-status.ok{color:hsl(var(--hue) 70% 70%);}
+
+  /* ---------- sheet ---------- */
+  .sheet{display:flex;flex-direction:column;gap:16px;}
+
+  .hero{
+    position:relative;
+    background:linear-gradient(135deg, var(--accent-dim), var(--panel) 65%);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 24px;
+    clip-path:polygon(0 0,100% 0,100% 100%,28px 100%,0 calc(100% - 28px));
+  }
+  .hero-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;}
+  @media (max-width:640px){.hero-grid{grid-template-columns:1fr 1fr;}}
+
+  .hero-top{display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .portrait{
+    width:96px;height:96px;flex:0 0 auto;
+    border-radius:14px;
+    background:rgba(0,0,0,.28);
+    border:1px solid rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .portrait img{width:100%;height:100%;object-fit:cover;}
+  .portrait span{font-size:.68rem;color:hsl(var(--hue) 20% 80% / .6);text-align:center;padding:0 6px;}
+  .portrait-controls{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+  .btn-file{
+    display:inline-block;font-family:'Rubik',sans-serif;font-weight:600;font-size:.85rem;
+    border-radius:10px;border:1px solid var(--line);padding:9px 14px;cursor:pointer;
+    background:var(--panel-alt);color:var(--ink);
+  }
+  .btn-file:hover{filter:brightness(1.12);}
+  .btn-file input[type=file]{display:none;}
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  input, select, textarea{
+    font-family:'Rubik',sans-serif;
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:9px;
+    padding:9px 11px;
+    font-size:.92rem;
+    width:100%;
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  textarea{resize:vertical;min-height:64px;line-height:1.45;}
+  .hero .field label{color:hsl(var(--hue) 40% 88% / .75);}
+  .hero input, .hero select, .hero textarea{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.12);}
+  .name-field input{font-family:'Anton',sans-serif;font-size:1.35rem;letter-spacing:.02em;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px 22px;
+  }
+  .panel-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    margin-bottom:14px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--accent);
+  }
+  .panel-head h2{font-size:1.15rem;color:var(--ink);margin:0;}
+  .panel-head .hint{font-size:.74rem;color:var(--muted);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media (max-width:640px){.grid2,.grid3{grid-template-columns:1fr 1fr;}}
+
+  /* atributos */
+  .attrs{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+  @media (max-width:880px){.attrs{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:460px){.attrs{grid-template-columns:repeat(2,1fr);}}
+  .attr-card{
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 10px;
+    text-align:center;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .attr-card label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .attr-card input{text-align:center;font-family:'Anton',sans-serif;font-size:1.3rem;padding:6px;}
+
+  /* derived stat readouts */
+  .stat-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:10px 14px;
+  }
+  .stat-row .k{font-size:.82rem;color:var(--muted);}
+  .stat-row .v{font-family:'Anton',sans-serif;font-size:1.2rem;color:var(--accent);}
+  .pf-controls{display:flex;align-items:center;gap:10px;}
+  .pf-controls button{padding:6px 12px;font-family:'Anton',sans-serif;font-size:1rem;}
+  .pf-controls input{width:64px;text-align:center;}
+
+  .vit-bars{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .vit-bar-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);}
+  .vit-bar{height:8px;border-radius:6px;background:var(--panel-alt);overflow:hidden;border:1px solid var(--line);}
+  .vit-bar > div{height:100%;background:linear-gradient(90deg, var(--accent-dim), var(--accent));}
+
+  /* listas dinâmicas */
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .list-item{
+    position:relative;
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 40px 14px 14px;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .list-item .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media (max-width:640px){.list-item .row{grid-template-columns:1fr;}}
+  .remove-btn{
+    position:absolute;top:8px;right:8px;
+    width:26px;height:26px;border-radius:50%;
+    background:transparent;border:1px solid var(--line);
+    color:var(--muted);font-size:.85rem;line-height:1;padding:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .remove-btn:hover{color:var(--danger);border-color:var(--danger);}
+  .add-row{align-self:flex-start;}
+
+  .badges{display:flex;gap:10px;flex-wrap:wrap;}
+  .badge{
+    display:flex;align-items:center;gap:6px;
+    background:var(--panel-alt);border:1px solid var(--line);
+    border-radius:10px;padding:6px 12px;font-size:.78rem;color:var(--muted);
+  }
+  .badge b{font-family:'Anton',sans-serif;color:var(--ink);font-size:1rem;}
+
+  footer.note{font-size:.72rem;color:var(--muted);text-align:center;padding:6px 0 20px;}
+
+  /* ---------- print ---------- */
+  @media print{
+    body{background:#fff !important;color:#111 !important;}
+    .no-print{display:none !important;}
+    .app{display:block;max-width:100%;padding:0;}
+    .panel, .hero{
+      background:#fff !important;
+      border:1px solid #999 !important;
+      color:#111 !important;
+      box-shadow:none !important;
+      break-inside:avoid;
+      margin-bottom:12px;
+      clip-path:none !important;
+    }
+    .panel-head{border-bottom:2px solid #111 !important;}
+    .panel-head h2, h1, .name-field input{color:#111 !important;}
+    input, select, textarea{
+      background:#fff !important;color:#111 !important;border:1px solid #999 !important;
+      box-shadow:none !important;
+    }
+    .attr-card, .stat-row, .list-item, .badge{background:#f4f4f4 !important;border-color:#999 !important;}
+    .attr-card input, .stat-row .v{color:#111 !important;}
+    .remove-btn, .add-row{display:none !important;}
+    .portrait{border-color:#999 !important;background:#f4f4f4 !important;}
+    .portrait span{color:#888 !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <div class="display">FORCE Z</div>
+      <span>Ficha Digital &middot; Fast Play</span>
+    </div>
+
+    <div class="wheel-block">
+      <span class="wheel-label">Cor principal</span>
+      <div class="wheel-wrap">
+        <canvas id="wheel" width="150" height="150"></canvas>
+        <div id="wheel-knob"></div>
+      </div>
+      <div class="wheel-swatch"><span class="dot" id="swatch-dot"></span><span id="swatch-label">hsl(271, 68%, 56%)</span></div>
+    </div>
+
+    <div class="side-actions">
+      <button class="btn-primary" id="btn-pdf">Baixar em PDF</button>
+      <button class="btn-ghost" id="btn-save">Salvar agora</button>
+      <button class="btn-danger-ghost" id="btn-reset">Limpar ficha</button>
+    </div>
+    <div class="save-status" id="save-status">&nbsp;</div>
+  </aside>
+
+  <!-- SHEET -->
+  <main class="sheet" id="sheet-content">
+
+    <section class="hero">
+      <div class="hero-top">
+        <div class="portrait no-print-hide" id="portrait-frame">
+          <img id="portrait-img" style="display:none;">
+          <span id="portrait-placeholder">Sem imagem</span>
+        </div>
+        <div class="portrait-controls no-print">
+          <label class="btn-file">
+            Escolher imagem
+            <input type="file" id="f-imagem" accept="image/*">
+          </label>
+          <button class="btn-ghost" id="btn-remove-imagem" type="button">Remover</button>
+          <span class="hint" style="font-size:.68rem;">a imagem &eacute; redimensionada e salva junto com a ficha</span>
+        </div>
+      </div>
+      <div class="hero-grid">
+        <div class="field name-field">
+          <label for="f-nome">Nome do personagem</label>
+          <input id="f-nome" type="text" placeholder="Ex: Claire Vantz">
+        </div>
+        <div class="field">
+          <label for="f-jogador">Jogador(a)</label>
+          <input id="f-jogador" type="text" placeholder="Seu nome">
+        </div>
+        <div class="field">
+          <label for="f-patamar">Patamar</label>
+          <select id="f-patamar">
+            <option value="1">1&ordm; (Marcos 1-4)</option>
+            <option value="2">2&ordm; (Marcos 5-8)</option>
+            <option value="3">3&ordm; (Marcos 9-12)</option>
+            <option value="4">4&ordm; (Marcos 13-16)</option>
+            <option value="5">5&ordm; (Marcos 17-20)</option>
+            <option value="6">6&ordm; (Marco 25+)</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label for="f-conceito">Conceito &amp; hist&oacute;ria</label>
+          <textarea id="f-conceito" placeholder="Poderes, rela&ccedil;&otilde;es no mundo, origem do personagem..."></textarea>
+        </div>
+        <div class="field">
+          <label for="f-marco">Marco atual</label>
+          <input id="f-marco" type="number" min="0" max="30" value="1">
+        </div>
+        <div class="field">
+          <label for="f-heroivilao">H&eacute;roi ou Vil&atilde;o</label>
+          <select id="f-heroivilao">
+            <option>Her&oacute;i</option>
+            <option>Vil&atilde;o</option>
+            <option>Neutro / Anti-her&oacute;i</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Atributos</h2><span class="hint">soma do atributo aos 2d10 em testes</span></div>
+      <div class="attrs">
+        <div class="attr-card"><label>Combate</label><input type="number" id="attr-combate" value="0"></div>
+        <div class="attr-card"><label>Durabilidade</label><input type="number" id="attr-durabilidade" value="0"></div>
+        <div class="attr-card"><label>For&ccedil;a</label><input type="number" id="attr-forca" value="0"></div>
+        <div class="attr-card"><label>Mente</label><input type="number" id="attr-mente" value="0"></div>
+        <div class="attr-card"><label>Energia</label><input type="number" id="attr-energia" value="0"></div>
+        <div class="attr-card"><label>Velocidade</label><input type="number" id="attr-velocidade" value="0"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Origem &amp; Arqu&eacute;tipo</h2></div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-origem">Origem</label>
+          <select id="f-origem">
+            <option value="super-inato" data-vit="12">Super-Inato (Vitalidade base 12)</option>
+            <option value="mutado" data-vit="16">Mutado (Vitalidade base 16)</option>
+            <option value="custom" data-vit="">Personalizada</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-arquetipo">Arqu&eacute;tipo</label>
+          <select id="f-arquetipo">
+            <option value="psionico" data-vit="6" data-sup="mente">Psi&ocirc;nico (+6 Vitalidade &middot; Superioridade: Mente)</option>
+            <option value="energista" data-vit="5" data-sup="energia">Energista (+5 Vitalidade &middot; Superioridade: Energia)</option>
+            <option value="brutalista" data-vit="10" data-sup="forca">Brutalista (+10 Vitalidade &middot; Superioridade: For&ccedil;a)</option>
+            <option value="custom" data-vit="" data-sup="">Personalizado</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label for="f-habilidade-unica">Habilidade &uacute;nica da origem</label>
+          <textarea id="f-habilidade-unica" placeholder="Ex: Poderoso por Natureza &mdash; ganha 2 PF ao entrar em uma cena nova..."></textarea>
+        </div>
+      </div>
+      <div class="badges" style="margin-top:12px;">
+        <div class="badge">D. Impacto F&iacute;sico <b>d8</b></div>
+        <div class="badge">D. Impacto Explosivo <b>d6</b></div>
+        <div class="badge">D. Impacto Mental <b>d4</b></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Vitalidade, Defesa &amp; Superioridade</h2></div>
+      <div class="grid3">
+        <div class="field">
+          <label for="f-vit-base">Vitalidade base (origem)</label>
+          <input id="f-vit-base" type="number" value="12">
+        </div>
+        <div class="field">
+          <label for="f-vit-bonus">B&ocirc;nus do arqu&eacute;tipo</label>
+          <input id="f-vit-bonus" type="number" value="6">
+        </div>
+        <div class="field">
+          <label for="f-vit-extra">Outros b&ocirc;nus</label>
+          <input id="f-vit-extra" type="number" value="0">
+        </div>
+      </div>
+      <div class="vit-bars">
+        <div class="vit-bar-label"><span>Vitalidade total</span><span id="vit-total">18</span></div>
+        <div class="vit-bar"><div id="vit-bar-fill" style="width:100%"></div></div>
+        <div class="vit-bar-label"><span>Ferido em</span><span id="vit-ferido">9</span></div>
+        <div class="vit-bar-label"><span>Debilitado em</span><span id="vit-debilitado">4 (4.5)</span></div>
+      </div>
+      <div class="grid3" style="margin-top:16px;">
+        <div class="field">
+          <label for="f-defesa-extra">Defesa &mdash; outros b&ocirc;nus</label>
+          <input id="f-defesa-extra" type="number" value="0">
+        </div>
+        <div class="stat-row"><span class="k">Defesa total (10+Dur+bônus)</span><span class="v" id="defesa-total">10</span></div>
+        <div class="field">
+          <label for="f-sup-atributo">Atributo de Superioridade</label>
+          <select id="f-sup-atributo">
+            <option value="attr-combate">Combate</option>
+            <option value="attr-durabilidade">Durabilidade</option>
+            <option value="attr-forca">For&ccedil;a</option>
+            <option value="attr-mente">Mente</option>
+            <option value="attr-energia">Energia</option>
+            <option value="attr-velocidade">Velocidade</option>
+          </select>
+        </div>
+      </div>
+      <div class="stat-row" style="margin-top:10px;"><span class="k">Superioridade total (10+atributo+marco)</span><span class="v" id="sup-total">10</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Pontos Force</h2><span class="hint">in&iacute;cio: 5 &middot; limite: 15</span></div>
+      <div class="pf-controls">
+        <button id="pf-minus" class="no-print">&minus;</button>
+        <input id="f-pf-atual" type="number" value="5" min="0" max="15">
+        <span style="color:var(--muted)">/</span>
+        <input id="f-pf-max" type="number" value="15" min="1" style="width:64px;text-align:center;">
+        <button id="pf-plus" class="no-print">+</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Experi&ecirc;ncias</h2><span class="hint">+2 no teste quando aplic&aacute;vel</span></div>
+      <div class="list" id="list-experiencias"></div>
+      <button class="add-row no-print" data-list="experiencias">+ Adicionar experi&ecirc;ncia</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Tra&ccedil;os</h2></div>
+      <div class="list" id="list-tracos"></div>
+      <button class="add-row no-print" data-list="tracos">+ Adicionar tra&ccedil;o</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Talentos</h2></div>
+      <div class="list" id="list-talentos"></div>
+      <button class="add-row no-print" data-list="talentos">+ Adicionar talento</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Equipamentos</h2></div>
+      <div class="list" id="list-equipamentos"></div>
+      <button class="add-row no-print" data-list="equipamentos">+ Adicionar equipamento</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Notas</h2></div>
+      <textarea id="f-notas" style="min-height:100px;" placeholder="Anota&ccedil;&otilde;es livres, hist&oacute;rico de marcos, contatos..."></textarea>
+    </section>
+
+    <footer class="note">Ficha n&atilde;o oficial baseada em Force Z, por Lupin &middot; cada pessoa que abrir este link tem sua pr&oacute;pria ficha salva no pr&oacute;prio navegador/dispositivo</footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "forcez-sheet-v1";
+  var saveTimer = null;
+
+  /* ---------------- list field definitions ---------------- */
+  var LIST_DEFS = {
+    experiencias: {
+      fields: [
+        {key:"nome", type:"text", label:"Experi&ecirc;ncia", placeholder:"Ex: Ninguém me pega"},
+        {key:"bonus", type:"text", label:"Quando se aplica", placeholder:"Ex: testes para fugir ou se esconder"}
+      ],
+      defaults:[{nome:"",bonus:""},{nome:"",bonus:""}]
+    },
+    tracos: {
+      fields:[
+        {key:"nome", type:"text", label:"Nome do tra&ccedil;o"},
+        {key:"tipo", type:"select", label:"Tipo", options:["Principal","&Uacute;nico","Geral"]},
+        {key:"desc", type:"textarea", label:"Descri&ccedil;&atilde;o", full:true}
+      ],
+      defaults:[{nome:"",tipo:"Principal",desc:""}]
+    },
+    talentos: {
+      fields:[
+        {key:"nome", type:"text", label:"Nome do talento"},
+        {key:"desc", type:"textarea", label:"Descri&ccedil;&atilde;o", full:true}
+      ],
+      defaults:[]
+    },
+    equipamentos: {
+      fields:[
+        {key:"nome", type:"text", label:"Item"},
+        {key:"qtd", type:"text", label:"Quantidade / notas"}
+      ],
+      defaults:[{nome:"1 Traje Simples",qtd:""},{nome:"2 Aparatos Simples",qtd:""},{nome:"1 Arma Normal",qtd:""}]
+    }
+  };
+
+  /* ---------------- default state ---------------- */
+  function defaultState(){
+    var s = {
+      hue: 271,
+      nome:"", jogador:"", patamar:"1", conceito:"", marco:1, heroivilao:"Her\u00f3i",
+      origem:"super-inato", arquetipo:"psionico", habilidadeUnica:"",
+      attrs:{combate:0,durabilidade:0,forca:0,mente:0,energia:0,velocidade:0},
+      vitBase:12, vitBonus:6, vitExtra:0,
+      defesaExtra:0, supAtributo:"attr-mente",
+      pfAtual:5, pfMax:15,
+      notas:"", imagem:null,
+      lists:{}
+    };
+    Object.keys(LIST_DEFS).forEach(function(k){
+      s.lists[k] = JSON.parse(JSON.stringify(LIST_DEFS[k].defaults));
+    });
+    return s;
+  }
+
+  var state = defaultState();
+
+  /* ---------------- helpers ---------------- */
+  function $(id){ return document.getElementById(id); }
+  function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+
+  /* ---------------- color wheel ---------------- */
+  var wheelCanvas = $("wheel");
+  var wheelCtx = wheelCanvas.getContext("2d");
+  var wheelKnob = $("wheel-knob");
+  var wheelSize = 150;
+  var wheelCenter = wheelSize/2;
+  var wheelRadius = wheelSize/2;
+
+  function drawWheel(){
+    var img = wheelCtx.createImageData(wheelSize, wheelSize);
+    for(var y=0;y<wheelSize;y++){
+      for(var x=0;x<wheelSize;x++){
+        var dx = x - wheelCenter, dy = y - wheelCenter;
+        var dist = Math.sqrt(dx*dx+dy*dy);
+        var idx = (y*wheelSize+x)*4;
+        if(dist > wheelRadius){
+          img.data[idx+3] = 0;
+          continue;
+        }
+        var angle = (Math.atan2(dx, -dy) * 180/Math.PI + 360) % 360;
+        var rgb = hslToRgb(angle/360, 0.68, 0.56);
+        img.data[idx]=rgb[0]; img.data[idx+1]=rgb[1]; img.data[idx+2]=rgb[2]; img.data[idx+3]=255;
+      }
+    }
+    wheelCtx.putImageData(img,0,0);
+  }
+
+  function hslToRgb(h,s,l){
+    var r,g,b;
+    if(s===0){ r=g=b=l; }
+    else{
+      var hue2rgb = function(p,q,t){
+        if(t<0)t+=1; if(t>1)t-=1;
+        if(t<1/6) return p+(q-p)*6*t;
+        if(t<1/2) return q;
+        if(t<2/3) return p+(q-p)*(2/3-t)*6;
+        return p;
+      };
+      var q = l<0.5 ? l*(1+s) : l+s-l*s;
+      var p = 2*l-q;
+      r = hue2rgb(p,q,h+1/3);
+      g = hue2rgb(p,q,h);
+      b = hue2rgb(p,q,h-1/3);
+    }
+    return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+  }
+
+  function setHue(h, save){
+    state.hue = ((h%360)+360)%360;
+    document.documentElement.style.setProperty("--hue", state.hue.toFixed(1));
+    var rad = (state.hue) * Math.PI/180;
+    var kx = wheelCenter + Math.sin(rad) * (wheelRadius-9);
+    var ky = wheelCenter - Math.cos(rad) * (wheelRadius-9);
+    wheelKnob.style.left = kx+"px";
+    wheelKnob.style.top = ky+"px";
+    $("swatch-label").textContent = "hsl(" + Math.round(state.hue) + ", 68%, 56%)";
+    if(save!==false) scheduleSave();
+  }
+
+  function wheelPointToHue(clientX, clientY){
+    var rect = wheelCanvas.getBoundingClientRect();
+    var x = clientX - rect.left - wheelCenter;
+    var y = clientY - rect.top - wheelCenter;
+    return (Math.atan2(x, -y) * 180/Math.PI + 360) % 360;
+  }
+
+  var draggingWheel = false;
+  wheelCanvas.addEventListener("pointerdown", function(e){
+    draggingWheel = true;
+    setHue(wheelPointToHue(e.clientX, e.clientY));
+  });
+  window.addEventListener("pointermove", function(e){
+    if(draggingWheel) setHue(wheelPointToHue(e.clientX, e.clientY));
+  });
+  window.addEventListener("pointerup", function(){ draggingWheel=false; });
+
+  drawWheel();
+
+  /* ---------------- attribute inputs ---------------- */
+  var attrIds = ["combate","durabilidade","forca","mente","energia","velocidade"];
+
+  /* ---------------- derived calculations ---------------- */
+  function recalc(){
+    var vitBase = parseInt($("f-vit-base").value)||0;
+    var vitBonus = parseInt($("f-vit-bonus").value)||0;
+    var vitExtra = parseInt($("f-vit-extra").value)||0;
+    var vitTotal = vitBase+vitBonus+vitExtra;
+    $("vit-total").textContent = vitTotal;
+    $("vit-ferido").textContent = Math.floor(vitTotal/2);
+    $("vit-debilitado").textContent = Math.floor(vitTotal/4);
+    $("vit-bar-fill").style.width = "100%";
+
+    var durab = parseInt($("attr-durabilidade").value)||0;
+    var defesaExtra = parseInt($("f-defesa-extra").value)||0;
+    $("defesa-total").textContent = 10+durab+defesaExtra;
+
+    var supAttrId = $("f-sup-atributo").value;
+    var supVal = parseInt($(supAttrId).value)||0;
+    var marco = parseInt($("f-marco").value)||0;
+    $("sup-total").textContent = 10+supVal+marco;
+  }
+
+  /* ---------------- dynamic lists ---------------- */
+  function renderList(name){
+    var def = LIST_DEFS[name];
+    var container = $("list-" + name);
+    container.innerHTML = "";
+    state.lists[name].forEach(function(item, idx){
+      container.appendChild(buildListItem(name, def, item, idx));
+    });
+  }
+
+  function buildListItem(name, def, item, idx){
+    var wrap = document.createElement("div");
+    wrap.className = "list-item";
+    var row = document.createElement("div");
+    row.className = "row";
+    def.fields.forEach(function(f){
+      var field = document.createElement("div");
+      field.className = "field";
+      if(f.full) field.style.gridColumn = "1/-1";
+      var label = document.createElement("label");
+      label.innerHTML = f.label;
+      field.appendChild(label);
+      var input;
+      if(f.type==="textarea"){
+        input = document.createElement("textarea");
+        input.style.minHeight = "56px";
+      } else if(f.type==="select"){
+        input = document.createElement("select");
+        f.options.forEach(function(o){
+          var opt=document.createElement("option");
+          opt.innerHTML=o; opt.value=o.replace(/&[a-z]+;/g,function(m){
+            var t=document.createElement("textarea"); t.innerHTML=m; return t.value;
+          });
+          input.appendChild(opt);
+        });
+      } else {
+        input = document.createElement("input");
+        input.type = "text";
+        if(f.placeholder) input.placeholder = f.placeholder;
+      }
+      input.value = item[f.key] || "";
+      input.addEventListener("input", function(){
+        state.lists[name][idx][f.key] = input.value;
+        scheduleSave();
+      });
+      field.appendChild(input);
+      row.appendChild(field);
+    });
+    wrap.appendChild(row);
+    var remove = document.createElement("button");
+    remove.className = "remove-btn no-print";
+    remove.innerHTML = "&times;";
+    remove.title = "Remover";
+    remove.addEventListener("click", function(){
+      state.lists[name].splice(idx,1);
+      renderList(name);
+      scheduleSave();
+    });
+    wrap.appendChild(remove);
+    return wrap;
+  }
+
+  document.querySelectorAll(".add-row").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var name = btn.getAttribute("data-list");
+      var blank = {};
+      LIST_DEFS[name].fields.forEach(function(f){
+        blank[f.key] = f.type==="select" ? f.options[0] : "";
+      });
+      state.lists[name].push(blank);
+      renderList(name);
+      scheduleSave();
+    });
+  });
+
+  /* ---------------- imagem do personagem ---------------- */
+  function resizeImageFile(file, maxDim, cb){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        var canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setPortrait(dataUrl, save){
+    state.imagem = dataUrl || null;
+    var img = $("portrait-img"), placeholder = $("portrait-placeholder");
+    if(dataUrl){
+      img.src = dataUrl;
+      img.style.display = "block";
+      placeholder.style.display = "none";
+    } else {
+      img.style.display = "none";
+      placeholder.style.display = "block";
+    }
+    if(save!==false) scheduleSave();
+  }
+
+  $("f-imagem").addEventListener("change", function(e){
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    if(!file.type.startsWith("image/")){
+      alert("Escolha um arquivo de imagem.");
+      return;
+    }
+    resizeImageFile(file, 480, function(dataUrl){ setPortrait(dataUrl); });
+  });
+  $("btn-remove-imagem").addEventListener("click", function(){
+    $("f-imagem").value = "";
+    setPortrait(null);
+  });
+
+  /* ---------------- origem / arquetipo auto-fill ---------------- */
+  $("f-origem").addEventListener("change", function(){
+    var opt = $("f-origem").selectedOptions[0];
+    var vit = opt.getAttribute("data-vit");
+    if(vit) { $("f-vit-base").value = vit; recalc(); }
+    scheduleSave();
+  });
+  $("f-arquetipo").addEventListener("change", function(){
+    var opt = $("f-arquetipo").selectedOptions[0];
+    var vit = opt.getAttribute("data-vit");
+    var sup = opt.getAttribute("data-sup");
+    if(vit) $("f-vit-bonus").value = vit;
+    if(sup) $("f-sup-atributo").value = "attr-"+sup;
+    recalc();
+    scheduleSave();
+  });
+
+  /* ---------------- bind simple fields ---------------- */
+  var SIMPLE_FIELDS = [
+    ["f-nome","nome"], ["f-jogador","jogador"], ["f-patamar","patamar"],
+    ["f-conceito","conceito"], ["f-marco","marco"], ["f-heroivilao","heroivilao"],
+    ["f-origem","origem"], ["f-arquetipo","arquetipo"], ["f-habilidade-unica","habilidadeUnica"],
+    ["f-vit-base","vitBase"], ["f-vit-bonus","vitBonus"], ["f-vit-extra","vitExtra"],
+    ["f-defesa-extra","defesaExtra"], ["f-sup-atributo","supAtributo"],
+    ["f-pf-atual","pfAtual"], ["f-pf-max","pfMax"], ["f-notas","notas"]
+  ];
+
+  SIMPLE_FIELDS.forEach(function(pair){
+    var el = $(pair[0]);
+    el.addEventListener("input", function(){
+      state[pair[1]] = el.value;
+      recalc();
+      scheduleSave();
+    });
+    el.addEventListener("change", function(){
+      state[pair[1]] = el.value;
+      recalc();
+      scheduleSave();
+    });
+  });
+
+  attrIds.forEach(function(a){
+    var el = $("attr-"+a);
+    el.addEventListener("input", function(){
+      state.attrs[a] = parseInt(el.value)||0;
+      recalc();
+      scheduleSave();
+    });
+  });
+
+  $("pf-minus").addEventListener("click", function(){
+    var el = $("f-pf-atual");
+    el.value = clamp((parseInt(el.value)||0)-1, 0, parseInt($("f-pf-max").value)||15);
+    state.pfAtual = el.value; scheduleSave();
+  });
+  $("pf-plus").addEventListener("click", function(){
+    var el = $("f-pf-atual");
+    el.value = clamp((parseInt(el.value)||0)+1, 0, parseInt($("f-pf-max").value)||15);
+    state.pfAtual = el.value; scheduleSave();
+  });
+
+  /* ---------------- save / load ---------------- */
+  function applyStateToDom(){
+    SIMPLE_FIELDS.forEach(function(pair){
+      if(state[pair[1]] !== undefined) $(pair[0]).value = state[pair[1]];
+    });
+    attrIds.forEach(function(a){ $("attr-"+a).value = state.attrs[a] || 0; });
+    Object.keys(LIST_DEFS).forEach(renderList);
+    setHue(state.hue || 271, false);
+    setPortrait(state.imagem || null, false);
+    recalc();
+  }
+
+  function collectState(){
+    return state;
+  }
+
+  function scheduleSave(){
+    var status = $("save-status");
+    status.textContent = "salvando...";
+    status.className = "save-status no-print";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 500);
+  }
+
+  function doSave(){
+    var status = $("save-status");
+    try{
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+      status.textContent = "Ficha salva neste navegador \u2713";
+      status.className = "save-status ok no-print";
+    } catch(err){
+      if(err && err.name === "QuotaExceededError"){
+        status.textContent = "Sem espa\u00e7o: tente uma imagem menor";
+      } else {
+        status.textContent = "N\u00e3o foi poss\u00edvel salvar neste navegador";
+      }
+      status.className = "save-status no-print";
+    }
+  }
+
+  function loadState(){
+    try{
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var loaded = JSON.parse(raw);
+        state = Object.assign(defaultState(), loaded);
+        if(loaded.attrs) state.attrs = Object.assign(defaultState().attrs, loaded.attrs);
+        if(loaded.lists) state.lists = Object.assign(defaultState().lists, loaded.lists);
+      }
+    } catch(err){
+      state = defaultState();
+    }
+    applyStateToDom();
+  }
+
+  $("btn-save").addEventListener("click", doSave);
+
+  $("btn-reset").addEventListener("click", function(){
+    if(confirm("Isso vai apagar todos os dados da ficha atual. Continuar?")){
+      state = defaultState();
+      applyStateToDom();
+      scheduleSave();
+    }
+  });
+
+  $("btn-pdf").addEventListener("click", function(){
+    window.print();
+  });
+
+  loadState();
+})();
+</script>
+</body>
+</html>
